@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="bin/www" type="NodeJSConfigurationType" path-to-js-file="app.js" working-dir="$PROJECT_DIR$">
+    <envs>
+      <env name="DEBUG" value="iot-project:*" />
+      <env name="AWS_REGION" value="us-west-2" />
+      <env name="AWS_SECRET_ACCESS_KEY" value="6OVasRo9wwjnDwB312o2Iww/OQcW0jovBy7NGwcn" />
+      <env name="AWS_ACCESS_KEY_ID" value="AKIAJU664DUGUGT7Q6NA" />
+    </envs>
+    <EXTENSION ID="com.jetbrains.nodejs.run.NodeJSStartBrowserRunConfigurationExtension">
+      <browser url="http://localhost:3000/" />
+    </EXTENSION>
+    <method v="2" />
+  </configuration>
+</component>
