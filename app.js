@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const fs = require('fs');
+const path = require('path');
 const fileUpload = require('express-fileupload');
 
 app.use(express.static(__dirname));
@@ -11,13 +12,10 @@ const port = 3000;
 const AWS = require('aws-sdk');
 
 s3 = new AWS.S3({apiVersion: '2006-03-01'});
-/*const config = new AWS.Config({
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    region: process.env.AWS_REGION
-});*/
 const client = new AWS.Rekognition();
-
+app.get('/', (req,res) => {
+   res.status(200).send('Face Server');
+});
 app.post('/match_face', (req, res) => {
     if (req.files && req.files.face_file) {
         call_face_match(req.files.face_file.data).then(match => {
@@ -30,8 +28,35 @@ app.post('/match_face', (req, res) => {
         });
     }
     else {
-        res.status(400).send('Must Specify File')
+        res.status(400).send('Must Specify face_file')
     }
+});
+
+app.post('/face', (req, res) => {
+    if (req.files && req.files.face_file) {
+        uploadFace(req.files.face_file).then(uploaded => {
+            if (uploaded) {
+                res.status(200).send('Face Uploaded');
+            }
+            else {
+                res.status(500).send('Error uploading face')
+            }
+        });
+    }
+    else {
+        res.status(400).send('Must Specify face_file')
+    }
+});
+
+app.delete('/face/:faceKey', (req, res) => {
+    deleteFace(req.params.faceKey).then(deleted => {
+        if (deleted) {
+            res.status(200).send('Face Deleted');
+        }
+        else {
+            res.status(500).send('Error deleting face')
+        }
+    });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
@@ -46,6 +71,35 @@ function obtainBucketItems() {
                 resolve(null);
             } else {
                 resolve(data);
+            }
+        });
+    });
+}
+
+function uploadFace(file) {
+    return new Promise(resolve => {
+        var uploadParams = {Bucket: "authorizedusers", Key: '', Body: ''};
+        uploadParams.Body = file.data;
+        uploadParams.Key = file.name;
+        s3.upload (uploadParams, function (err, data) {
+            if (err) {
+                resolve(false);
+            } if (data) {
+                resolve(true);
+            }
+        });
+    });
+}
+
+function deleteFace(key) {
+    return new Promise(resolve => {
+        var params = {  Bucket: 'authorizedusers', Key: key };
+        s3.deleteObject(params, function(err, data) {
+            if (err){
+                resolve(false)
+            }
+            else {
+                resolve(true)
             }
         });
     });
