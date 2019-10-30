@@ -4,6 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const fileUpload = require('express-fileupload');
 
+var text_params = {
+    Message: '',
+    PhoneNumber: '14086247305',
+};
+
 app.use(express.static(__dirname));
 app.set('view engine', 'ejs');
 app.use(fileUpload());
@@ -113,6 +118,9 @@ function matchFace(params) {
                 resolve(false)
             } else {
                 if (response.FaceMatches && response.FaceMatches.length > 0) {
+                    var keyName = params.TargetImage.S3Object.Name;
+                    var faceMatch = keyName.substring(0, keyName.length - 4);
+                    sendText(faceMatch + " detected");
                     resolve(true)
                 } else {
                     resolve(false)
@@ -143,5 +151,18 @@ async function call_face_match(sourceImage) {
             return true;
         }
     }
+    sendText("Unrecognized person detected");
     return false;
+}
+
+function sendText(message) {
+    text_params.Message = message;
+    var publishTextPromise = new AWS.SNS({apiVersion: '2010-03-31'}).publish(text_params).promise();
+    publishTextPromise.then(
+        function(data) {
+            console.log("MessageID is " + data.MessageId);
+        }).catch(
+        function(err) {
+            console.error(err, err.stack);
+        });
 }
